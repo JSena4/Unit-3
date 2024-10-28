@@ -3,6 +3,27 @@ window.onload = function(){
     
     //SVG dimension variables
     var w = 900, h = 500;
+
+    var cityPop = [
+        { 
+            city: 'Madison',
+            population: 233209
+        },
+        {
+            city: 'Milwaukee',
+            population: 594833
+        },
+        {
+            city: 'Green Bay',
+            population: 104057
+        },
+        {
+            city: 'Superior',
+            population: 27244
+        }
+    ];
+
+ 
     
     //container block
     var container = d3.select("body")  //get the <body> element from the DOM
@@ -25,6 +46,31 @@ window.onload = function(){
         .attr("x", 50) //position from left on the x (horizontal) axis
         .attr("y", 50) //position from top on the y (vertical) axis
         .style("fill", "#FFFFFF"); //fill color
+
+    var dataArray = [10, 20, 30, 40, 50];
+
+    //trio of methods supporting a join
+    var circles = container.selectAll(".circles")
+        .data(cityPop) //here we feed in an array
+        .enter()
+        .append("circle") //add a circle for each datum
+        .attr("class", "circles") //apply a class name to all circles
+        .attr("id", function(d) {
+            return d.city;
+        })
+        .attr("r", function(d){
+            //calculate the radius based on population valuea s circle area
+            var area = d.population * 0.01;
+            return Math.sqrt(area/Math.PI);
+        })
+        .attr("cx", function(d, i){
+            //use the index to place each circle horizontally
+            return 90 + (i * 180);
+        })
+        .attr("cy", function(d){
+            //subtgract value from 450 to "grow" circles up from the bottom instead of down from the top of the SVG
+            return 450 - (d.population * 0.0005);
+        });
 
     console.log(innerRect);
 };
