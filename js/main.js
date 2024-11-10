@@ -16,9 +16,9 @@ function setMap() {
     //create custom conic equal area projection
     var projection = d3.geoConicEqualArea()
         .parallels([33, 45])
-        .scale(4000)
-        .translate([40, 250])
-        .rotate([120, -5])
+        .scale(5600)
+        .translate([-270, 780])
+        .rotate([120, 0])
         .center([-10, 34]);
 
     //create a path generator using the projection
@@ -27,31 +27,25 @@ function setMap() {
     //use Promise.all to parallelize asynchronous data loading
     var promises = [];
     promises.push(d3.csv("data/Cali_County_Data.csv")); //load attributes from csv
+    promises.push(d3.json("data/Surrounding_Cali_States_Provinces.topojson"));
     promises.push(d3.json("data/California_Counties.topojson")); //load choropleth spatial data
     Promise.all(promises).then(callback);
 
     function callback(data) {
         var csvData = data[0],
-            caliCounties = data[1];
+            caliCounties = data[2],
+            surrounding = data[1];
 
         console.log("csvData: ", csvData);
         console.log("California Counties topojson: ", caliCounties);
+        console.log("Surrounding States topojson: ", surrounding);
 
-        //translate California counties TopoJSON
+        //translate topoJSONs back to GeoJSON
         var californiaCounties = topojson.feature(caliCounties, caliCounties.objects.California_Counties).features;
+        var surroundingStates = topojson.feature(surrounding, surrounding.objects.Surrounding_Cali_States_Provinces).features;
 
-        //add California counties to map
-        var counties = map.selectAll(".counties")
-            .data(californiaCounties)
-            .enter()
-            .append("path")
-            .attr("class", function(d) {
-                return "counties " + d.properties.NAME_ALT;
-            })
-            .attr("d", path);
-
-        // create graticule generator
-        var graticule = d3.geoGraticule()
+            // create graticule generator
+            var graticule = d3.geoGraticule()
             .step([5, 5]); //place graticule lines every 5 degrees of longitude and latitude
 
         //create graticule background
@@ -67,5 +61,26 @@ function setMap() {
             .append("path") //append each element to the svg as a path element
             .attr("class", "gratLines") //assign class for styling
             .attr("d", path); //project graticule lines
+
+        //add California counties to map
+        var counties = map.selectAll(".counties")
+            .data(californiaCounties) //pass in the reconverted GeoJSON
+            .enter()
+            .append("path")
+            .attr("class", function(d) {
+                return "counties " + d.properties.NAME_ALT;
+            })
+            .attr("d", path);
+
+        var states = map.selectAll(".states")
+            .data(surroundingStates)
+            .enter()
+            .append("path")
+            .attr("class", function(d) {
+                return "states " + d.properties.name; //name of the name field is "name"
+            })
+            .attr("d", path);            
+
+
     }
 };
